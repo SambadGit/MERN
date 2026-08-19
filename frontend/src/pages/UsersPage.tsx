@@ -4,6 +4,7 @@ import type { Role } from '../types';
 
 const initialForm = { name: '', email: '', password: '', role: 'user' };
 
+// Admin-only account creation, role changes, activation, and search live here.
 export function UsersPage() {
   const [search, setSearch] = useState('');
   const [form, setForm] = useState(initialForm);
@@ -11,6 +12,7 @@ export function UsersPage() {
   const [create, createState] = useCreateUserMutation();
   const [update] = useUpdateUserMutation();
 
+  // The backend hashes the password before storing it.
   const submit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     try {

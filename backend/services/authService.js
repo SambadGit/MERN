@@ -5,12 +5,14 @@ const RefreshToken = require('../models/RefreshToken');
 const { AppError } = require('../middleware/error');
 const { createAccessToken, createRefreshToken, hashToken, refreshExpiry, verifyRefreshToken } = require('../utils/tokens');
 
+// Issue a short-lived access token and a long-lived refresh token for a user.
 const issueSession = async (user) => {
   const refreshToken = createRefreshToken();
   await RefreshToken.create({ user: user._id, tokenHash: hashToken(refreshToken), expiresAt: refreshExpiry() });
   return { accessToken: createAccessToken(user), refreshToken };
 };
 
+// Registration owns account uniqueness and password hashing.
 const register = async ({ name, email, password }) => {
   const existing = await User.findOne({ email });
   if (existing) throw new AppError('An account with this email already exists.', 409, 'EMAIL_IN_USE');
@@ -19,6 +21,7 @@ const register = async ({ name, email, password }) => {
   return { user, session: await issueSession(user) };
 };
 
+// Login reads the protected passwordHash field only for comparison.
 const login = async ({ email, password }) => {
   const user = await User.findOne({ email }).select('+passwordHash');
   const valid = user && user.isActive && await bcrypt.compare(password, user.passwordHash);
@@ -28,6 +31,7 @@ const login = async ({ email, password }) => {
   return { user, session: await issueSession(user) };
 };
 
+// Rotation revokes the old refresh token before issuing a replacement.
 const rotate = async (token) => {
   try {
     const record = await RefreshToken.findOne({ tokenHash: hashToken(token), revokedAt: null }).populate('user');

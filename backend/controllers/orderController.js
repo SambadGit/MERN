@@ -2,6 +2,7 @@ const Order = require('../models/Order');
 const Product = require('../models/Product');
 const { AppError } = require('../middleware/error');
 
+// Return all orders for staff, but restrict normal users to their own orders.
 const list = async (req, res) => {
   const { page = 1, limit = 10, status, search } = req.validated.query;
   const filter = req.user.role === 'user' ? { customer: req.user.sub } : {};
@@ -9,6 +10,7 @@ const list = async (req, res) => {
   const [items, total] = await Promise.all([Order.find(filter).populate('customer', 'name email').sort('-createdAt').skip((page - 1) * limit).limit(limit), Order.countDocuments(filter)]);
   res.json({ success: true, data: { items, pagination: { page, limit, total, pages: Math.ceil(total / limit) } } });
 };
+// Each item decrements stock only when enough inventory exists.
 const create = async (req, res) => {
   const items = await Promise.all(req.validated.body.items.map(async ({ productId, quantity }) => {
     const product = await Product.findOneAndUpdate({ _id: productId, stock: { $gte: quantity } }, { $inc: { stock: -quantity, soldCount: quantity } }, { new: true });

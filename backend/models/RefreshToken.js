@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 
+// Only a hash is stored; the raw refresh token exists only in the browser cookie.
 const refreshTokenSchema = new mongoose.Schema(
   {
     user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true },

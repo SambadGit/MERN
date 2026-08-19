@@ -2,7 +2,11 @@ import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import type { RootState } from '../store';
 import type { Dashboard, Order, OrderStatus, Page, Product, User } from '../types';
 
+// RTK Query adds the access token to every request and sends the HTTP-only
+// refresh cookie automatically. Components use generated hooks below instead
+// of writing fetch calls themselves.
 const baseQuery = fetchBaseQuery({ baseUrl: `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/v1`, credentials: 'include', prepareHeaders: (headers, { getState }) => { const token = (getState() as RootState).auth.accessToken; if (token) headers.set('authorization', `Bearer ${token}`); return headers; } });
+// Tags tell RTK Query which cached screens should reload after a mutation.
 export const api = createApi({ reducerPath: 'api', baseQuery, tagTypes: ['Product', 'Order', 'User', 'Dashboard'], endpoints: (build) => ({
   login: build.mutation<{ data: { user: User; accessToken: string } }, { email: string; password: string }>({ query: (body) => ({ url: '/auth/login', method: 'POST', body }) }),
   register: build.mutation<{ data: { user: User; accessToken: string } }, { name: string; email: string; password: string }>({ query: (body) => ({ url: '/auth/register', method: 'POST', body }) }),

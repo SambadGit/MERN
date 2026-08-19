@@ -1,5 +1,7 @@
 const authService = require('../services/authService');
 
+// Refresh tokens are kept in an HTTP-only cookie; access tokens are returned
+// in JSON so the frontend can attach them to protected API requests.
 const cookieOptions = { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'lax', path: '/api/v1/auth' };
 const sendSession = (res, result, status = 200) => { res.cookie('refreshToken', result.session.refreshToken, { ...cookieOptions, maxAge: 7 * 24 * 60 * 60 * 1000 }); res.status(status).json({ success: true, data: { user: result.user, accessToken: result.session.accessToken } }); };
 

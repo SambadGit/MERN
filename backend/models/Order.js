@@ -1,5 +1,7 @@
 const mongoose = require('mongoose');
 
+// Orders snapshot item names/prices so historical totals do not change when
+// the catalog is edited later.
 const orderSchema = new mongoose.Schema(
   {
     customer: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true },

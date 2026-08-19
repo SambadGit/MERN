@@ -4,6 +4,7 @@ import { useCreateProductMutation } from '../services/api';
 
 const initialForm = { name: '', description: '', price: '', stock: '10', category: 'General', image: '' };
 
+// This page is the focused product-creation workflow linked from the sidebar.
 export function AddProductPage() {
   const [form, setForm] = useState(initialForm);
   const [create, state] = useCreateProductMutation();

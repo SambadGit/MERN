@@ -1,3 +1,4 @@
+// Validate body, query, and URL parameters before a controller runs.
 const validate = (schema) => (req, _res, next) => {
   const result = schema.safeParse({ body: req.body, query: req.query, params: req.params });
   if (!result.success) {

@@ -6,7 +6,9 @@ const { authenticate } = require('../middleware/auth');
 const schemas = require('../schemas/apiSchemas');
 const controller = require('../controllers/authController');
 
+// Authentication routes are public except for /me, which needs an access token.
 const router = express.Router();
+// Login has a stricter limit to slow down brute-force attempts.
 const loginLimit = rateLimit({ windowMs: 15 * 60 * 1000, max: 20, standardHeaders: true, legacyHeaders: false });
 router.post('/register', validate(schemas.register), asyncHandler(controller.register));
 router.post('/login', loginLimit, validate(schemas.credentials), asyncHandler(controller.login));

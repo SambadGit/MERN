@@ -2,6 +2,7 @@ const jwt = require('jsonwebtoken');
 const { jwtAccessSecret } = require('../config/env');
 const { AppError } = require('./error');
 
+// Verify the signed access token and expose its identity to downstream handlers.
 const authenticate = (req, _res, next) => {
   const header = req.get('authorization');
   const token = header && header.startsWith('Bearer ') ? header.slice(7) : null;
@@ -14,6 +15,7 @@ const authenticate = (req, _res, next) => {
   }
 };
 
+// Check authorization after authentication; roles are enforced on the server.
 const authorize = (...roles) => (req, _res, next) => {
   if (!req.user || !roles.includes(req.user.role)) return next(new AppError('You do not have permission for this action.', 403, 'FORBIDDEN'));
   next();

@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 
+// User is the identity and RBAC model. passwordHash is excluded from normal queries.
 const userSchema = new mongoose.Schema(
   {
     name: { type: String, required: true, trim: true, maxlength: 80 },

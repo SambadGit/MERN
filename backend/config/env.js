@@ -2,6 +2,7 @@ const dotenv = require('dotenv');
 
 dotenv.config();
 
+// Read an environment value and fail early when an essential setting is absent.
 const getRequired = (name, fallback) => {
   const value = process.env[name] || fallback;
   if (!value) {
@@ -10,6 +11,8 @@ const getRequired = (name, fallback) => {
   return value;
 };
 
+// Keep configuration in one object so the rest of the backend never reads
+// process.env directly or duplicates default values.
 module.exports = {
   port: Number(process.env.PORT || 5000),
   nodeEnv: process.env.NODE_ENV || 'development',

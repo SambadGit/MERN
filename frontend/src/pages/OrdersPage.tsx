@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useCreateOrderMutation, useOrdersQuery, useProductsQuery } from '../services/api';
 import type { OrderStatus } from '../types';
 
+// Orders combines server-backed history with a stock-aware create form.
 export function OrdersPage() {
   const [status, setStatus] = useState<OrderStatus | undefined>();
   const [productId, setProductId] = useState('');
@@ -11,6 +12,7 @@ export function OrdersPage() {
   const [createOrder, createState] = useCreateOrderMutation();
   const products = productsData?.data.items || [];
 
+  // The backend is authoritative for stock validation and inventory updates.
   const submit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!productId && products[0]) setProductId(products[0]._id);

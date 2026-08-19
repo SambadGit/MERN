@@ -1,6 +1,8 @@
 const bcrypt = require('bcryptjs');
 const User = require('../models/User');
 const { AppError } = require('../middleware/error');
+// User responses use projections so passwords and other authentication fields
+// never leave the backend.
 const list = async (req, res) => {
   const { page = 1, limit = 10, search, role, isActive } = req.validated.query;
   const filter = {};

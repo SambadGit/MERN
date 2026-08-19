@@ -2,6 +2,7 @@ const User = require('../models/User');
 const Product = require('../models/Product');
 const Order = require('../models/Order');
 
+// Aggregate live operational totals and recent records for the overview screen.
 const overview = async (_req, res) => {
   const [users, products, orders, revenue, recentOrders, recentUsers] = await Promise.all([
     User.countDocuments(), Product.countDocuments(), Order.countDocuments(),

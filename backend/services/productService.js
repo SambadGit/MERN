@@ -1,6 +1,7 @@
 const Product = require('../models/Product');
 const { AppError } = require('../middleware/error');
 
+// Product listing applies search/filter/pagination in MongoDB before returning data.
 const list = async ({ page = 1, limit = 10, search, sort = '-createdAt', status, category }) => {
   const filter = {};
   if (search) filter.$or = [{ name: new RegExp(search, 'i') }, { description: new RegExp(search, 'i') }];
