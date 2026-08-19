@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 
+// A schema describes the fields and validation rules for documents in MongoDB.
 const loginSchema = new mongoose.Schema(
   {
     username: {
@@ -7,6 +8,8 @@ const loginSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
+    // Passwords are stored directly only because this is a learning demo.
+    // Production applications should hash passwords before saving them.
     password: {
       type: String,
       required: true,
@@ -24,4 +27,5 @@ const loginSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+// The model provides methods such as create(), countDocuments(), and find().
 module.exports = mongoose.model('Login', loginSchema, 'login');

@@ -2,6 +2,7 @@
   box-sizing: border-box;
 }
 
+/* Global page defaults shared by every screen. */
 body {
   margin: 0;
   font-family: Arial, sans-serif;
@@ -20,6 +21,7 @@ textarea {
   font: inherit;
 }
 
+/* Shared layout containers and navigation. */
 .container {
   max-width: 1200px;
   margin: 0 auto;
@@ -51,6 +53,7 @@ textarea {
   background: #1e293b;
 }
 
+/* Reusable panel and form styles used by login and product screens. */
 .card {
   background: white;
   border-radius: 12px;
@@ -88,6 +91,7 @@ textarea {
   resize: vertical;
 }
 
+/* Button colors communicate the type of action to the user. */
 button {
   background: #2563eb;
   color: white;
@@ -114,6 +118,7 @@ button.danger:hover {
   background: #b91c1c;
 }
 
+/* Page-specific helpers, including the login panel and loading animation. */
 .page-title {
   margin-bottom: 16px;
 }
@@ -152,6 +157,7 @@ button.danger:hover {
   100% { transform: rotate(360deg); }
 }
 
+/* Messages and action groups keep feedback and controls easy to scan. */
 .form-actions {
   display: flex;
   gap: 12px;
@@ -200,6 +206,7 @@ button.danger:hover {
   gap: 8px;
 }
 
+/* The two-column transaction layout collapses on smaller screens. */
 .grid-two {
   display: grid;
   grid-template-columns: 1.2fr 0.8fr;

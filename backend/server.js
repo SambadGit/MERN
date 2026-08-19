@@ -5,14 +5,19 @@ const connectDB = require('./config/db');
 const Product = require('./models/Product');
 const Login = require('./models/Login');
 
+// Load configuration values from backend/.env, such as PORT and MONGO_URI.
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// Allow the React app to call this API from a different local port.
 app.use(cors());
+// Parse JSON request bodies so values sent by fetch() are available in req.body.
 app.use(express.json());
 
+// Add an administrator and example products the first time the database is empty.
+// This makes the demo usable immediately after it starts.
 const seedData = async () => {
   const adminCount = await Login.countDocuments({ username: 'admin' });
   if (adminCount === 0) {
@@ -45,6 +50,8 @@ const seedData = async () => {
   }
 };
 
+// Middleware runs before protected routes. It checks the token sent by the frontend
+// and calls next() only when the user is allowed to continue.
 const isAuthenticated = (req, res, next) => {
   const authHeader = req.headers.authorization;
   if (authHeader === 'admin-authenticated') {
@@ -54,10 +61,12 @@ const isAuthenticated = (req, res, next) => {
   return res.status(401).json({ message: 'Unauthorized. Please log in first.' });
 };
 
+// Simple endpoint used to confirm that the backend process is running.
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', message: 'MERN demo backend is running.' });
 });
 
+// Check login details and record every login attempt in MongoDB.
 app.post('/api/login', async (req, res) => {
   const { username, password } = req.body;
 
@@ -65,6 +74,7 @@ app.post('/api/login', async (req, res) => {
     return res.status(400).json({ message: 'Username and password are required.' });
   }
 
+  // This is a deliberately simple demo login, not production authentication.
   const validUser = username === 'admin' && password === 'password1';
 
   await Login.create({
@@ -85,6 +95,7 @@ app.post('/api/login', async (req, res) => {
   });
 });
 
+// Return all products. The authentication middleware protects this route.
 app.get('/api/products', isAuthenticated, async (req, res) => {
   try {
     const products = await Product.find().sort({ createdAt: -1 });
@@ -94,6 +105,7 @@ app.get('/api/products', isAuthenticated, async (req, res) => {
   }
 });
 
+// Return one product using the MongoDB document id from the URL.
 app.get('/api/products/:id', isAuthenticated, async (req, res) => {
   try {
     const product = await Product.findById(req.params.id);
@@ -106,6 +118,7 @@ app.get('/api/products/:id', isAuthenticated, async (req, res) => {
   }
 });
 
+// Create a new product from the fields sent by the Add Product form.
 app.post('/api/products', isAuthenticated, async (req, res) => {
   try {
     const { name, description, price, stock } = req.body;
@@ -127,6 +140,8 @@ app.post('/api/products', isAuthenticated, async (req, res) => {
   }
 });
 
+// Update an existing product. PUT is used because the request replaces the
+// editable product values with the submitted values.
 app.put('/api/products/:id', isAuthenticated, async (req, res) => {
   try {
     const { name, description, price, stock, soldCount } = req.body;
@@ -138,6 +153,7 @@ app.put('/api/products/:id', isAuthenticated, async (req, res) => {
       soldCount: soldCount !== undefined ? Number(soldCount) : undefined,
     };
 
+    // Remove fields that were not supplied so they are not saved as undefined.
     Object.keys(productData).forEach((key) => {
       if (productData[key] === undefined) {
         delete productData[key];
@@ -159,6 +175,7 @@ app.put('/api/products/:id', isAuthenticated, async (req, res) => {
   }
 });
 
+// Delete a product using its MongoDB document id.
 app.delete('/api/products/:id', isAuthenticated, async (req, res) => {
   try {
     const product = await Product.findByIdAndDelete(req.params.id);
@@ -172,6 +189,7 @@ app.delete('/api/products/:id', isAuthenticated, async (req, res) => {
   }
 });
 
+// Complete a purchase by reducing stock and increasing the sold count together.
 app.post('/api/transactions', isAuthenticated, async (req, res) => {
   try {
     const { productId, quantity } = req.body;
@@ -185,6 +203,7 @@ app.post('/api/transactions', isAuthenticated, async (req, res) => {
       return res.status(404).json({ message: 'Product not found.' });
     }
 
+    // Form values arrive as strings, so convert the quantity before arithmetic.
     const qty = Number(quantity);
     const newStock = product.stock - qty;
 
@@ -206,6 +225,8 @@ app.post('/api/transactions', isAuthenticated, async (req, res) => {
   }
 });
 
+// Connect to the database, insert demo data if needed, and then start Express.
+// The server does not accept requests until these startup tasks finish.
 const startServer = async () => {
   try {
     await connectDB();

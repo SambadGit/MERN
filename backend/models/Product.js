@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 
+// This schema defines the shape and validation rules for every product document.
 const productSchema = new mongoose.Schema(
   {
     name: {
@@ -31,4 +32,5 @@ const productSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+// Product is the database interface used by the API routes in server.js.
 module.exports = mongoose.model('Product', productSchema);

@@ -5,9 +5,11 @@ let memoryServer;
 
 const connectDB = async () => {
   try {
+    // Use the configured database when available; otherwise use the local default.
     const mongoUri = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/mern_demo';
 
     try {
+      // First try a normal MongoDB connection so data can persist between restarts.
       await mongoose.connect(mongoUri);
       console.log('MongoDB connected successfully.');
       return;
@@ -15,6 +17,8 @@ const connectDB = async () => {
       console.warn('Primary MongoDB connection failed, trying in-memory MongoDB fallback:', primaryError.message);
     }
 
+    // The demo can still run without MongoDB installed by using a temporary database.
+    // Data in this fallback database is lost when the backend process stops.
     memoryServer = await MongoMemoryServer.create();
     const fallbackUri = memoryServer.getUri();
     await mongoose.connect(fallbackUri, {

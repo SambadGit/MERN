@@ -1,12 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { Routes, Route, Navigate, Link, useNavigate, useParams } from 'react-router-dom';
 
+// All frontend requests use this backend API base URL.
 const API_URL = 'http://localhost:5000/api';
 
+// The backend expects the login token in the Authorization request header.
 const setAuthHeader = (token) => ({
   Authorization: token || '',
 });
 
+// The functions below keep HTTP details in one place. Components call them
+// instead of repeating fetch(), headers, JSON parsing, and error handling.
 const loginUser = async (credentials) => {
   const response = await fetch(`${API_URL}/login`, {
     method: 'POST',
@@ -22,6 +26,7 @@ const loginUser = async (credentials) => {
   return data;
 };
 
+// Request the current product list for the logged-in user.
 const fetchProducts = async (token) => {
   const response = await fetch(`${API_URL}/products`, {
     headers: setAuthHeader(token),
@@ -35,6 +40,7 @@ const fetchProducts = async (token) => {
   return data;
 };
 
+// Use POST when id is missing (create) and PUT when id is present (update).
 const saveProduct = async (product, token, method, id) => {
   const response = await fetch(`${API_URL}/products${id ? `/${id}` : ''}`, {
     method,
@@ -53,6 +59,7 @@ const saveProduct = async (product, token, method, id) => {
   return data;
 };
 
+// Delete one product and return the server response.
 const deleteProduct = async (id, token) => {
   const response = await fetch(`${API_URL}/products/${id}`, {
     method: 'DELETE',
@@ -66,6 +73,7 @@ const deleteProduct = async (id, token) => {
   return data;
 };
 
+// Send a purchase to the backend, where stock validation and updates happen.
 const makeTransaction = async (payload, token) => {
   const response = await fetch(`${API_URL}/transactions`, {
     method: 'POST',
@@ -84,6 +92,7 @@ const makeTransaction = async (payload, token) => {
   return data;
 };
 
+// Redirect visitors who are not logged in away from protected pages.
 const ProtectedRoute = ({ children, isAuthenticated }) => {
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
@@ -92,6 +101,7 @@ const ProtectedRoute = ({ children, isAuthenticated }) => {
   return children;
 };
 
+// Show public navigation before login and application navigation after login.
 const Navbar = ({ isAuthenticated, onLogout }) => {
   return (
     <nav className="navbar">
@@ -114,6 +124,7 @@ const Navbar = ({ isAuthenticated, onLogout }) => {
 
 const LoginPage = ({ onLogin }) => {
   const navigate = useNavigate();
+  // Form values are kept in component state so the inputs always show current data.
   const [form, setForm] = useState({ username: 'admin', password: 'password1' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -124,6 +135,7 @@ const LoginPage = ({ onLogin }) => {
     setError('');
 
     try {
+      // Wait for the API before treating the user as authenticated.
       const result = await loginUser(form);
       setTimeout(() => {
         onLogin(result.token, result.user.username);
@@ -181,6 +193,7 @@ const LoginPage = ({ onLogin }) => {
 
 const ProductForm = ({ token, onSaved, editProduct }) => {
   const navigate = useNavigate();
+  // The same form is used for both creating a product and editing one.
   const [form, setForm] = useState({
     name: '',
     description: '',
@@ -191,6 +204,7 @@ const ProductForm = ({ token, onSaved, editProduct }) => {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
+    // When editProduct arrives, copy its values into the form inputs.
     if (editProduct) {
       setForm({
         name: editProduct.name || '',
@@ -207,6 +221,7 @@ const ProductForm = ({ token, onSaved, editProduct }) => {
     setLoading(true);
 
     try {
+      // Convert numeric input strings before sending data to the API.
       const payload = {
         name: form.name,
         description: form.description,
@@ -287,6 +302,7 @@ const ProductForm = ({ token, onSaved, editProduct }) => {
 };
 
 const ViewProductsPage = ({ token, onRefresh, refreshKey }) => {
+  // These states represent the three common request states: data, loading, and error.
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -304,6 +320,7 @@ const ViewProductsPage = ({ token, onRefresh, refreshKey }) => {
       }
     };
 
+    // Fetch again after login or whenever another component changes refreshKey.
     if (token) {
       loadProducts();
     }
@@ -370,6 +387,7 @@ const ViewProductsPage = ({ token, onRefresh, refreshKey }) => {
 };
 
 const TransactionPage = ({ token, onRefresh }) => {
+  // Product choices come from the API; the selected id and quantity come from the form.
   const [products, setProducts] = useState([]);
   const [selectedProductId, setSelectedProductId] = useState('');
   const [quantity, setQuantity] = useState(1);
@@ -400,6 +418,7 @@ const TransactionPage = ({ token, onRefresh }) => {
     setSuccess('');
 
     try {
+      // The backend checks stock, updates the product, and returns the result.
       const result = await makeTransaction({ productId: selectedProductId, quantity: Number(quantity) }, token);
       setSuccess(`Transaction successful: ${result.message}`);
       onRefresh();
@@ -465,11 +484,13 @@ const TransactionPage = ({ token, onRefresh }) => {
 };
 
 const App = () => {
+  // Keep the login session after a browser refresh by restoring it from localStorage.
   const [token, setToken] = useState(localStorage.getItem('mern-token') || '');
   const [username, setUsername] = useState(localStorage.getItem('mern-user') || '');
   const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
+    // Save or remove the token whenever authentication state changes.
     if (token) {
       localStorage.setItem('mern-token', token);
     } else {
@@ -478,6 +499,7 @@ const App = () => {
   }, [token]);
 
   useEffect(() => {
+    // Save or remove the displayed username whenever it changes.
     if (username) {
       localStorage.setItem('mern-user', username);
     } else {
@@ -495,11 +517,13 @@ const App = () => {
     setUsername('');
   };
 
+  // Incrementing this value gives product pages a simple signal to reload their data.
   const triggerRefresh = () => setRefreshKey((prev) => prev + 1);
 
   return (
     <>
       <Navbar isAuthenticated={!!token} onLogout={handleLogout} />
+      {/* Routes decide which component is rendered for each browser path. */}
       <Routes>
         <Route path="/login" element={<LoginPage onLogin={handleLogin} />} />
         <Route
@@ -562,6 +586,7 @@ const ProductEditRoute = ({ token, onSaved }) => {
       }
     };
 
+    // Load the product selected by the :id URL parameter before showing the form.
     if (token && id) {
       loadProduct();
     }
