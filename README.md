@@ -1,197 +1,95 @@
-# MERN Demo Project
+# CommerceOS
 
-This project is a simple full-stack demo built with MongoDB, Express.js, React.js, and Node.js.
+CommerceOS is a portfolio-grade MERN administration workspace for ecommerce operations. It preserves the original demo's product workflow while introducing a realistic API boundary, role-based access, secure sessions, operational dashboards, and a maintainable React architecture.
 
-## Folder structure
+## Architecture
 
-- `/backend` — Express API with MongoDB connection and REST routes
-- `/frontend` — React app with login, product CRUD, and transaction pages
+```mermaid
+flowchart LR
+  Browser[React + TypeScript + Vite] -->|JWT access token| API[Express API v1]
+  API --> Middleware[Security, validation, auth, RBAC]
+  Middleware --> Controllers[Thin controllers]
+  Controllers --> Services[Business services]
+  Services --> Mongo[(MongoDB)]
+  API --> Cookie[HTTP-only refresh cookie]
+```
 
-## Admin login
+The backend follows `route -> middleware -> controller -> service -> model -> MongoDB`. The frontend uses feature-oriented TypeScript modules, Redux Toolkit for session state, RTK Query for cached API data, React Hook Form, and lazy-loaded routes.
 
-- Username: `admin`
-- Password: `password1`
+## Features
 
-The login attempt is stored in the MongoDB `logins` collection.
+- JWT access tokens with short expiry and rotating, hashed refresh tokens
+- Register, login, logout, session restoration, and role-based authorization
+- Admin, manager, and user roles enforced by the API
+- Data-backed dashboard totals and recent order activity
+- Product search, pagination, category, status, stock, pricing, and deletion
+- Order listing with status filtering and atomic stock decrement on order creation
+- Admin user search, role changes, and activation controls
+- Helmet, restricted CORS, request limits, rate limiting, validation, sanitized errors
+- Responsive, keyboard-friendly operations UI with loading, error, and empty states
+
+## Stack
+
+- Frontend: React 18, TypeScript, Vite, React Router, Redux Toolkit, RTK Query, React Hook Form, Zod
+- Backend: Node.js, Express, Mongoose, MongoDB, JWT, bcryptjs, Zod
+- Quality: TypeScript checks, Vite production build, Node test runner foundation
 
 ## Local setup
 
-1. Install MongoDB locally if you want data to persist between backend restarts. If MongoDB is unavailable, the backend automatically uses an in-memory MongoDB instance for the current run.
-2. In the backend folder, install dependencies:
-   ```bash
-   cd backend
-   npm install
-   ```
-3. In the frontend folder, install dependencies:
-   ```bash
-   cd frontend
-   npm install
-   ```
-4. Start the backend:
-   ```bash
-   cd backend
-   npm run dev
-   ```
-5. Start the frontend in another terminal:
-   ```bash
-   cd frontend
-   npm start
-   ```
-6. Open http://localhost:3000 in the browser.
-
-## Backend URL
-
-- API base URL: http://localhost:5000/api
-
-## API routes
-
-- POST /api/login
-- GET /api/products
-- POST /api/products
-- PUT /api/products/:id
-- DELETE /api/products/:id
-- POST /api/transactions
-
-## Testing the app
-
-- Login with `admin` / `password1`
-- Create a product from the Add Product page
-- View all products from the Products page
-- Edit or delete products
-- Use the Transactions page to simulate a purchase by choosing a product and quantity
-
-## Notes
-
-- The frontend stores the session token in `localStorage`.
-- If not authenticated, routes redirect back to the login page.
-- MongoDB connection is configured in `/backend/.env` for `mongodb://127.0.0.1:27017/mern_demo`.
-
-## Run the Project Locally
-
-Follow these steps to run the complete application on a local machine.
-
-### 1. Install the prerequisites
-
-Install the following software:
-
-- Node.js and npm: https://nodejs.org/
-- MongoDB Community Edition (optional): https://www.mongodb.com/try/download/community
-- Git, if you are cloning the project from a repository: https://git-scm.com/downloads
-
-After installation, confirm that Node.js and npm are available:
-
-```bash
-node --version
-npm --version
-```
-
-### 2. Open the project folder
-
-Open a terminal and move to the project root, the folder that contains `backend` and `frontend`:
-
-```bash
-cd "path/to/MERN"
-```
-
-If you cloned the project, use the actual folder created by Git instead.
-
-### 3. Start MongoDB (optional)
-
-MongoDB is optional for this demo. If it is not running, the backend automatically starts an in-memory MongoDB instance. Use a local MongoDB service when you want products and login records to persist after restarting the backend.
-
-The connection string below is configuration only; do not enter it directly as a terminal command.
-
-```text
-mongodb://127.0.0.1:27017/mern_demo
-```
-
-If you installed MongoDB, start its local service. The exact command depends on your operating system.
-
-On Windows, start MongoDB from the Services application, or run:
+Prerequisites: Node.js 20+, npm, and MongoDB 7+ (or a MongoDB-compatible connection string).
 
 ```powershell
-net start MongoDB
-```
-
-On macOS or Linux with the MongoDB service installed, run:
-
-```bash
-sudo systemctl start mongod
-```
-
-If MongoDB is running, the backend connects to `mongodb://127.0.0.1:27017/mern_demo`. Otherwise, it logs that it is using in-memory MongoDB and continues starting.
-
-### 4. Install backend dependencies
-
-Open a terminal in the project root and run:
-
-```bash
 cd backend
+Copy-Item .env.example .env
+npm install
+
+cd ..\frontend
+Copy-Item .env.example .env
 npm install
 ```
 
-### 5. Install frontend dependencies
+Set `SEED_ADMIN_EMAIL` and `SEED_ADMIN_PASSWORD` in `backend/.env` for a development administrator. Start each application in a separate terminal:
 
-Open a second terminal, return to the project root, and run:
+```powershell
+# backend
+cd backend
+npm run dev
 
-```bash
+# frontend
 cd frontend
-npm install
-```
-
-### 6. Start the backend server
-
-In the first terminal, from the `backend` folder, run:
-
-```bash
 npm run dev
 ```
 
-The API starts at:
+Open http://localhost:5173. Never commit `.env` or use development seed credentials in production.
 
-```text
-http://localhost:5000
+## Environment variables
+
+Backend variables are documented in [backend/.env.example](backend/.env.example). The frontend uses `VITE_API_URL`, documented in [frontend/.env.example](frontend/.env.example). JWT secrets must be long, random, different values in deployed environments.
+
+## API overview
+
+- `POST /api/v1/auth/register`
+- `POST /api/v1/auth/login`
+- `POST /api/v1/auth/refresh`
+- `POST /api/v1/auth/logout`
+- `GET /api/v1/auth/me`
+- `GET|POST|PUT|DELETE /api/v1/products`
+- `GET|POST|PATCH /api/v1/orders`
+- `GET|PATCH /api/v1/users` (admin)
+- `GET /api/v1/dashboard` (admin or manager)
+- `GET /api/health`
+
+## Checks
+
+```powershell
+cd backend; npm test
+cd ..\frontend; npm run typecheck; npm run build
 ```
 
-You can check that it is running by opening this URL in a browser:
+## Database design
 
-```text
-http://localhost:5000/api/health
-```
+`User` stores identity, role, activation state, and a bcrypt password hash. `RefreshToken` stores only a SHA-256 token hash with TTL expiry and revocation metadata. `Product` stores catalog and inventory data. `Order` stores immutable item prices, totals, status, and status history. Login-attempt records from the original demo are retained as legacy data but are no longer used for authentication.
 
-The first backend startup creates the default admin login and sample products in MongoDB when they do not already exist.
+## Future improvements
 
-### 7. Start the frontend application
-
-In the second terminal, from the `frontend` folder, run:
-
-```bash
-npm start
-```
-
-The React application opens at:
-
-```text
-http://localhost:3000
-```
-
-If it does not open automatically, visit that URL manually.
-
-### 8. Use the application
-
-1. Open `http://localhost:3000`.
-2. Log in with username `admin` and password `password1`.
-3. Add a product from the Add Product page.
-4. View, edit, or delete products from the Products page.
-5. Use the Transactions page to select a product and quantity.
-
-### 9. Stop the project
-
-Press `Ctrl+C` in the backend and frontend terminals to stop the development servers. Stop the MongoDB service separately if you started it manually.
-
-### Troubleshooting
-
-- If the backend cannot connect to MongoDB, confirm that MongoDB is running and that port `27017` is available.
-- If port `5000` or `3000` is already in use, stop the other application using it and start this project again.
-- If dependencies are missing, run `npm install` again inside both the `backend` and `frontend` folders.
-- If the frontend redirects to the login page, log in again. The authentication token is stored in the browser's `localStorage`.
+Add password reset email delivery, image storage through object storage, a full order detail workflow, sales time-series aggregation, background jobs, audit logs, OpenAPI generation, and CI deployment previews.

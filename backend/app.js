@@ -1,0 +1,24 @@
+const express = require('express');
+const cors = require('cors');
+const helmet = require('helmet');
+const cookieParser = require('cookie-parser');
+const rateLimit = require('express-rate-limit');
+const { clientOrigin } = require('./config/env');
+const { notFound, errorHandler } = require('./middleware/error');
+
+const app = express();
+app.disable('x-powered-by');
+app.use(helmet());
+app.use(cors({ origin: clientOrigin, credentials: true }));
+app.use(express.json({ limit: '1mb' }));
+app.use(cookieParser());
+app.use(rateLimit({ windowMs: 15 * 60 * 1000, max: 300, standardHeaders: true, legacyHeaders: false }));
+app.get('/api/health', (_req, res) => res.json({ status: 'ok', service: 'mern-admin-api' }));
+app.use('/api/v1/auth', require('./routes/authRoutes'));
+app.use('/api/v1/users', require('./routes/userRoutes'));
+app.use('/api/v1/products', require('./routes/productRoutes'));
+app.use('/api/v1/orders', require('./routes/orderRoutes'));
+app.use('/api/v1/dashboard', require('./routes/dashboardRoutes'));
+app.use(notFound);
+app.use(errorHandler);
+module.exports = app;

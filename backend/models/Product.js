@@ -28,6 +28,22 @@ const productSchema = new mongoose.Schema(
       default: 0,
       min: 0,
     },
+    category: {
+      type: String,
+      trim: true,
+      default: 'General',
+      index: true,
+    },
+    status: {
+      type: String,
+      enum: ['active', 'draft', 'archived'],
+      default: 'active',
+      index: true,
+    },
+    image: {
+      type: String,
+      trim: true,
+    },
   },
   { timestamps: true }
 );
